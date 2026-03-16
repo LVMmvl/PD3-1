@@ -1,10 +1,10 @@
-$topProcesses = Get-Process |
-    Where-Object { $_.Name -ne 'svchost' } |
-    Sort-Object -Property WS -Descending |
-    Select-Object -First 5
+$topProcesses = Get-Process | 
+    Where-Object { $_.ProcessName -ne 'svchost' } | 
+    Sort-Object WorkingSet -Descending | 
+    Select-Object -First 5 ProcessName, @{Name='RAM_MB'; Expression={[math]::Round($_.WorkingSet / 1MB, 2)}}
 
-$totalBytes = ($topProcesses | Measure-Object -Property WS -Sum).Sum
+$topProcesses | Format-Table -AutoSize
 
-$totalMB = [Math]::Round($totalBytes / 1MB, 1)
 
-Write-Host "Top 5 processes total RAM: $($totalMB) MB"
+$totalRAM_MB = ($topProcesses | Measure-Object -Property RAM_MB -Sum).Sum
+Write-Host ("Total RAM used by top 5 processes (excluding svchost): {0:N2} MB" -f $totalRAM_MB)
