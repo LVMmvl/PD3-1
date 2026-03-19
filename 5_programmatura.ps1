@@ -1,13 +1,22 @@
-
-Write-Host "Pārbauda pieejamos programmatūras atjauninājumus..." -ForegroundColor Cyan
+# 1. Iegūst winget izvadi un pārvērš to sarakstā
+Write-Host "Pārbauda pieejamos atjauninājumus..." -ForegroundColor Cyan
 $updates = winget upgrade --include-unknown | Out-String
 
-
-if ($updates -match "No installed package have yielded yields") {
-    Write-Host "Visi rīki ir atjaunināti!" -ForegroundColor Green
-} else {
-    
-    Write-Host "Pieejamie atjauninājumi:" -ForegroundColor Yellow
-    winget upgrade
+# 2. Apstrādā tekstu, lai saskaitītu tikai programmu rindas
+# Filtrējam ārā tabulas galvenes, atdalītājus un tukšas rindas
+$updateLines = $updates -split "`r`n" | Where-Object { 
+    $_ -match '\d+\.\d+' -and 
+    $_ -notmatch 'Name|ID|Version|---|atjauninājumi'
 }
 
+$count = ($updateLines | Measure-Object).Count
+
+# 3. Izvada rezultātus terminālī
+if ($count -gt 0) {
+    Write-Host "Atrasti $count programmu atjauninājumi:" -ForegroundColor Yellow
+    winget upgrade --include-unknown
+} else {
+    Write-Host "Visi rīki ir atjaunināti!" -ForegroundColor Green
+}
+
+Write-Host "`nKopā pieejami atjauninājumi: $count" -ForegroundColor White
